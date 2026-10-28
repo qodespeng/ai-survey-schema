@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1.0",
+  "title": "活动报名表",
+  "desc": "请填写你的基本信息，我们会尽快联系你确认报名。",
+  "showNumbering": true,
+  "questions": [
+    {
+      "id": "name",
+      "type": "text",
+      "title": "姓名",
+      "required": true,
+      "maxLen": 20,
+      "placeholder": "请输入真实姓名"
+    },
+    {
+      "id": "phone",
+      "type": "phone",
+      "title": "手机号",
+      "required": true,
+      "maxLen": 11,
+      "placeholder": "请输入 11 位手机号"
+    },
+    {
+      "id": "remark",
+      "type": "textarea",
+      "title": "备注",
+      "maxLen": 200,
+      "placeholder": "如有特殊需求，请在此说明"
+    }
+  ]
+}

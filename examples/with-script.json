@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0",
+  "title": "健康信息采集",
+  "desc": "请如实填写以下信息，用于活动当天的健康核验。",
+  "showNumbering": true,
+  "questions": [
+    {
+      "id": "age",
+      "type": "integer",
+      "title": "年龄",
+      "required": true,
+      "maxLen": 3,
+      "placeholder": "请输入周岁年龄",
+      "script": "ASSERT age>=18,\"年龄必须满 18 周岁\""
+    },
+    {
+      "id": "weight",
+      "type": "decimal",
+      "title": "体重（公斤）",
+      "required": true,
+      "maxLen": 5,
+      "placeholder": "如 65.5",
+      "script": "ASSERT weight>0 AND weight<500,\"体重必须在 0 到 500 之间\""
+    },
+    {
+      "id": "phone",
+      "type": "phone",
+      "title": "手机号",
+      "required": true,
+      "maxLen": 11,
+      "script": "ASSERT LENGTH(phone)=11,\"手机号必须为 11 位\""
+    }
+  ]
+}

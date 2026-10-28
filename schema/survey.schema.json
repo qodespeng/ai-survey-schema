@@ -1,0 +1,178 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://qodes.cn/schema/survey/v1",
+  "title": "智快问卷定义规范",
+  "description": "用于描述问卷结构的可交换 JSON 格式，支持导入导出，不限于智快问卷使用。",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "规范版本号，当前为 1.0"
+    },
+    "title": {
+      "type": "string",
+      "description": "问卷标题，最多 30 个字"
+    },
+    "desc": {
+      "type": "string",
+      "description": "问卷介绍，用于向填报者介绍此问卷的描述性信息，包括填报目的及注意事项等。最多 300 个字。"
+    },
+    "randomizeQuestions": {
+      "type": "boolean",
+      "description": "是否在展示时随机打乱整个问卷的问题顺序，每个受访者看到独立随机顺序",
+      "default": false
+    },
+    "showNumbering": {
+      "type": "boolean",
+      "description": "是否在问题标题前显示序号（如 1. 2. 3.）。除非特殊要求，建议设置为 true。",
+      "default": true
+    },
+    "literalRuleSpec": {
+      "type": "string",
+      "description": "自然语言描述的数据评估规则，规则可以描述数据之间的校验逻辑，也可以是逻辑计算，或其他可用于对数据进行评估的内容。大模型将阅读并执行评估。此规则也可能只是问卷/表单的描述，不涉及到需要根据填报数据评估的内容。此内容以纯文本展示，应做好换行等文本格式化。"
+    },
+    "ruleExecutable": {
+      "type": "boolean",
+      "description": "该规则是否可由 AI 执行评估。若为 false，则按钮仅展示规则文本，不调用 AI。",
+      "default": false
+    },
+    "ruleResultRequired": {
+      "type": "boolean",
+      "description": "问卷提交时是否必须经过 AI 评估，并将评估结果保存。若为 true，则用户只能点击 AI 评估按钮提交；否则用户可以选择直接提交而不由 AI 评估。此属性为 true 时要求 ruleExecutable 为 true，且 literalRuleSpec 非空。",
+      "default": false
+    },
+    "progressiveMode": {
+      "type": "boolean",
+      "description": "是否启用渐进式填写模式。每页只显示一道题目，用户回答后自动切换至下一题。开启此项时 showNumbering 设置不生效。",
+      "default": false
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/question" },
+      "description": "问卷问题列表，至少包含一道题"
+    }
+  },
+  "required": ["schemaVersion", "title", "questions"],
+  "allOf": [
+    {
+      "if": { "properties": { "ruleResultRequired": { "const": true } } },
+      "then": { "properties": { "ruleExecutable": { "const": true } } }
+    },
+    {
+      "if": { "properties": { "ruleExecutable": { "const": true } } },
+      "then": { "required": ["literalRuleSpec"] }
+    }
+  ],
+  "definitions": {
+    "question": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "textarea",
+            "integer",
+            "decimal",
+            "radio",
+            "checkbox",
+            "email",
+            "phone",
+            "date",
+            "datetime",
+            "yesno",
+            "row",
+            "column",
+            "matrix",
+            "grid"
+          ],
+          "description": "问题类型。基础输入型：text/textarea/integer/decimal/email/phone/date/datetime；选择型：radio/checkbox/yesno；容器型：row（单行容器，子控件显示在一行内）/ column（多行容器，子控件逐行显示）/ grid（表格容器，子控件顺序显示在表格单元格内）/ matrix（矩阵，子控件类型仅支持 radio/checkbox，且选项统一使用 matrix 控件的 options）。yesno 类型默认均为未选中（no 值）状态，不建议设置为必填字段。"
+        },
+        "id": {
+          "type": "string",
+          "description": "问题 id，英文字符和数字的组合，只能以英文开头，不能为数据库关键字",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+        },
+        "title": {
+          "type": "string",
+          "description": "问题标题，不要包含冒号，程序在显示时会自动生成"
+        },
+        "required": {
+          "type": "boolean",
+          "description": "是否为必填问题",
+          "default": false
+        },
+        "options": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "选择题的选项（字符串数组）"
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "输入框的占位文本"
+        },
+        "maxLen": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1024,
+          "description": "输入框内允许输入内容的最大长度。用于 text / integer / decimal / email / phone 等输入类型。integer / decimal 等数字类型的 maxLen 不能大于 18。对容器类型和 date / datetime / yesno 等字段无意义。"
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/question" },
+          "description": "子问题列表，仅用于容器类型（row / column / grid / matrix）。matrix 控件的子问题类型仅支持 radio / checkbox，且选项统一使用 matrix 控件的 options。"
+        },
+        "randomize": {
+          "type": "boolean",
+          "description": "是否随机打乱选项顺序，仅对 radio 和 checkbox 有效",
+          "default": false
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "每行显示的选项数量，仅对 radio 和 checkbox 有效。0 表示都显示在一行。对于确定所有选项都可以在移动设备上显示在一行内的，建议设为选项个数。",
+          "default": 0
+        },
+        "script": {
+          "type": "string",
+          "description": "控件级别的逻辑控制脚本全文，格式参见 docs/script-reference.md。staticText / row / column / grid 等控件不支持。"
+        }
+      },
+      "required": ["id", "type", "title"],
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "radio" } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "checkbox" } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["integer", "decimal"] } } },
+          "then": { "properties": { "maxLen": { "maximum": 18 } } }
+        },
+        {
+          "if": { "properties": { "type": { "enum": ["row", "column", "grid", "matrix"] } } },
+          "then": { "required": ["children"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "matrix" } } },
+          "then": {
+            "properties": {
+              "children": {
+                "items": {
+                  "properties": {
+                    "type": { "enum": ["radio", "checkbox"] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
