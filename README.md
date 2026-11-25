@@ -10,11 +10,11 @@
 
 ```json
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "title": "活动报名表",
   "questions": [
-    { "id": "name", "type": "text", "title": "姓名", "required": true },
-    { "id": "phone", "type": "phone", "title": "手机号", "required": true },
+    { "id": "name", "type": "text", "title": "姓名", "required": true, "roles": ["list", "identity"] },
+    { "id": "phone", "type": "phone", "title": "手机号", "required": true, "unique": true, "roles": ["list", "query"] },
     { "id": "remark", "type": "textarea", "title": "备注" }
   ]
 }
