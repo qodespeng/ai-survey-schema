@@ -1,14 +1,14 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://qodes.cn/schema/survey/v1",
+  "$id": "https://qodes.cn/schema/survey/v1.1",
   "title": "智快问卷定义规范",
   "description": "用于描述问卷结构的可交换 JSON 格式，支持导入导出，不限于智快问卷使用。",
   "type": "object",
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "1.0",
-      "description": "规范版本号，当前为 1.0"
+      "const": "1.1",
+      "description": "规范版本号，当前为 1.1"
     },
     "title": {
       "type": "string",
@@ -25,12 +25,12 @@
     },
     "showNumbering": {
       "type": "boolean",
-      "description": "是否在问题标题前显示序号（如 1. 2. 3.）。除非特殊要求，建议设置为 true。",
+      "description": "是否在问题标题前显示序号（如 1. 2. 3.）。如果问卷级的问题不包含column、matrix和grid这三个容器控件，建议设置为 true。",
       "default": true
     },
     "literalRuleSpec": {
       "type": "string",
-      "description": "自然语言描述的数据评估规则，规则可以描述数据之间的校验逻辑，也可以是逻辑计算，或其他可用于对数据进行评估的内容。大模型将阅读并执行评估。此规则也可能只是问卷/表单的描述，不涉及到需要根据填报数据评估的内容。此内容以纯文本展示，应做好换行等文本格式化。"
+      "description": "自然语言描述的数据评估规则，规则可以描述数据之间的校验逻辑，也可以是逻辑计算，或其他可用于对数据进行评估的内容。大模型将阅读并执行评估。此规则也可能只是问卷/表单的描述，不涉及到需要根据填报数据评估的内容。此内容以纯文本展示，应做好换行等文本格式化。如果声明将AI评估结果放入某个字段，则默认情况下该字段为只读字段（readOnly=true）"
     },
     "ruleExecutable": {
       "type": "boolean",
@@ -46,6 +46,80 @@
       "type": "boolean",
       "description": "是否启用渐进式填写模式。每页只显示一道题目，用户回答后自动切换至下一题。开启此项时 showNumbering 设置不生效。",
       "default": false
+    },
+    "settings": {
+      "type": "object",
+      "description": "问卷运行设置集合。默认都不开启",
+      "properties": {
+        "startAt": {
+          "type": "string",
+          "format": "date",
+          "description": "问卷开放开始日期，格式为 yyyy-MM-dd。未设置表示不限制开始日期。"
+        },
+        "endAt": {
+          "type": "string",
+          "format": "date",
+          "description": "问卷开放结束日期，格式为 yyyy-MM-dd。未设置表示不限制结束日期。应晚于或等于 startAt，由程序校验。"
+        },
+        "afterEndAction": {
+          "type": "string",
+          "enum": ["block", "viewLast"],
+          "default": "block",
+          "description": "截止后的行为。block=禁止进入，并显示 afterEndMessage 自定义消息；viewLast=允许查看最后录入的数据（只读），不允许新建提交，没填报过则显示afterEndMessage。"
+        },
+        "beforeStartMessage": {
+          "type": "string",
+          "maxLength": 256,
+          "default": "问卷尚未开始，敬请期待。",
+          "description": "问卷未到开放时间时展示给填报者的自定义消息。仅当设置了 startAt 且当前时间早于 startAt 时生效。此时应禁止进入填报，仅展示此消息。"
+        },
+        "afterEndMessage": {
+          "type": "string",
+          "maxLength": 256,
+          "default": "问卷已结束，感谢您的参与。",
+          "description": "截止后禁止进入时展示给填报者的自定义消息。仅当 afterEndAction 为 block 时生效。"
+        },
+        "disallowAnonymous": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否禁止不登录填报（通过 HTTP 网页链接直接录入，不是小程序这种可自动记录用户ID的通道）。为 true 时，通过http访问录入界面直接报错"
+        },
+        "maxRecordsPerUser": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1,
+          "description": "每用户最多录入条数，0或者不填 表示不限。匿名填报时该限制可能无法生效。"
+        },
+        "totalSubmitLimit": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "问卷总提交上限。0或者不填 表示不限。达到上限后应禁止新建提交，已提交记录是否可查看由 afterEndAction 等策略决定。"
+        },
+        "reenterAction": {
+          "type": "string",
+          "enum": ["viewLast", "editLast", "new"],
+          "default": "new",
+          "description": "用户再次打开问卷时的默认动作。viewLast=查看上次，editLast=编辑上次，new=新建。仅对可识别用户（如小程序 openid 登录）有效；匿名用户无上次记录时按新建处理。"
+        },
+        "submitSuccessMessage": {
+          "type": "string",
+          "maxLength": 256,
+          "default": "提交成功",
+          "description": "提交成功后的提示文案。"
+        },
+        "accessPassword": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "打开密码。仅用于导入导出配置；生产环境应存储哈希值并在服务端校验，不应将明文密码下发到客户端。"
+        },
+        "passwordHint": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "密码提示消息，展示给填报者，例如“请输入活动口令”。"
+        }
+      }
     },
     "questions": {
       "type": "array",
@@ -78,6 +152,7 @@
             "decimal",
             "radio",
             "checkbox",
+            "select",
             "email",
             "phone",
             "date",
@@ -88,7 +163,7 @@
             "matrix",
             "grid"
           ],
-          "description": "问题类型。基础输入型：text/textarea/integer/decimal/email/phone/date/datetime；选择型：radio/checkbox/yesno；容器型：row（单行容器，子控件显示在一行内）/ column（多行容器，子控件逐行显示）/ grid（表格容器，子控件顺序显示在表格单元格内）/ matrix（矩阵，子控件类型仅支持 radio/checkbox，且选项统一使用 matrix 控件的 options）。yesno 类型默认均为未选中（no 值）状态，不建议设置为必填字段。"
+          "description": "问题类型。基础输入型：text/textarea/integer/decimal/email/phone/date/datetime；选择型：select/radio/checkbox/yesno；容器型：row（单行容器，子控件显示在一行内）/column（多行容器，子控件逐行显示）/grid（表格容器，子控件顺序显示在表格单元格内）/matrix（矩阵，子控件类型仅支持 radio/checkbox，且选项统一使用 matrix 控件的 options）。yesno 类型默认均为未选中（no 值）状态，不建议设置为必填字段。select在移动设备上不是很好，因此如果选项少于10个以上应优先选择radio"
         },
         "id": {
           "type": "string",
@@ -99,14 +174,29 @@
           "type": "string",
           "description": "问题标题，不要包含冒号，程序在显示时会自动生成"
         },
+        "shortTitle": {
+          "type": "string",
+          "description": "问题的短显示名，是 title 的简写版本，用于空间受限或需要简写的展示场景，例如查询条件栏、列表表头、图表轴标签、导出列名、移动端紧凑卡片等。为移动设备展示优化，一般不超过 8 个字。未设置时回退使用 title。仅对非容器类型控件有效；row/column/grid/matrix 等容器控件忽略此属性。"
+        },
         "required": {
           "type": "boolean",
           "description": "是否为必填问题",
           "default": false
         },
+        "unique": {
+          "type": "boolean",
+          "description": "该问题的答案值是否在全部提交记录中保持唯一。true 时服务端在提交/编辑时校验重复值并拒绝重复；仅对非容器类型控件有效，row/column/grid/matrix 等容器控件忽略此属性。缺省为 false。",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否只读。为 true 时该问题仅供展示，填报者不能录入或修改；已有值（预填、URL 参数、脚本赋值、历史记录）照常显示。仅对非容器类型控件有效；row/column/grid/matrix 等容器控件忽略此属性。"
+        },
         "options": {
           "type": "array",
           "items": { "type": "string" },
+          "uniqueItems": true,
           "description": "选择题的选项（字符串数组）"
         },
         "placeholder": {
@@ -117,12 +207,12 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 1024,
-          "description": "输入框内允许输入内容的最大长度。用于 text / integer / decimal / email / phone 等输入类型。integer / decimal 等数字类型的 maxLen 不能大于 18。对容器类型和 date / datetime / yesno 等字段无意义。"
+          "description": "输入框内允许输入内容的最大长度。用于 text/integer/decimal/email/phone等输入类型。integer/decimal等数字类型的maxLen不能大于18。对容器类型和 date/datetime/yesno等字段无意义。"
         },
         "children": {
           "type": "array",
           "items": { "$ref": "#/definitions/question" },
-          "description": "子问题列表，仅用于容器类型（row / column / grid / matrix）。matrix 控件的子问题类型仅支持 radio / checkbox，且选项统一使用 matrix 控件的 options。"
+          "description": "子问题列表，仅用于容器类型（row/column/grid/matrix）。matrix 控件的子问题类型仅支持radio/checkbox，且选项统一使用matrix控件的options。"
         },
         "randomize": {
           "type": "boolean",
@@ -132,12 +222,21 @@
         "columns": {
           "type": "integer",
           "minimum": 0,
-          "description": "每行显示的选项数量，仅对 radio 和 checkbox 有效。0 表示都显示在一行。对于确定所有选项都可以在移动设备上显示在一行内的，建议设为选项个数。",
+          "description": "每行显示的选项数量，仅对radio和checkbox有效。0表示都显示在一行。对于确定所有选项都可以在移动设备上显示在一行内的，建议设为选项个数。",
           "default": 0
         },
         "script": {
           "type": "string",
-          "description": "控件级别的逻辑控制脚本全文，格式参见 docs/script-reference.md。staticText / row / column / grid 等控件不支持。"
+          "description": "控件级别的逻辑控制脚本全文，格式参见脚本描述文档。staticText/row/column/grid 等控件不支持。"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["list", "query", "identity"]
+          },
+          "uniqueItems": true,
+          "description": "字段角色标记，可多选。list=该字段在数据列表字段中列出；query=该字段可用于数据过滤；identity=该字段内容能用于标识整条数据（作为标识字段，值可以为空），常用于表数据关联时的显示。缺省或空数组表示无特殊角色。仅对非容器类型控件有效；row/column/grid/matrix 等容器控件忽略此属性。生成问卷时默认应自动根据选取关键字段生成。"
         }
       },
       "required": ["id", "type", "title"],
@@ -148,6 +247,10 @@
         },
         {
           "if": { "properties": { "type": { "const": "checkbox" } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "select" } } },
           "then": { "required": ["options"] }
         },
         {
