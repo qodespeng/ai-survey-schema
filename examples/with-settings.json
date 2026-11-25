@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.1",
+  "title": "2026 年度内部培训报名与调研",
+  "desc": "请填写真实工号与部门信息，每人限报一次，截止后仅支持查看本人已提交记录。",
+  "showNumbering": true,
+  "settings": {
+    "startAt": "2026-11-25",
+    "endAt": "2026-12-10",
+    "beforeStartMessage": "本次报名将于 11 月 25 日正式开启，敬请期待。",
+    "afterEndAction": "viewLast",
+    "afterEndMessage": "报名已截止，感谢您的关注。",
+    "disallowAnonymous": false,
+    "maxRecordsPerUser": 1,
+    "totalSubmitLimit": 200,
+    "reenterAction": "editLast",
+    "submitSuccessMessage": "报名成功！后续将通过企业微信通知具体日程。",
+    "accessPassword": "HR2026",
+    "passwordHint": "请输入内部通知群公布的 6 位活动口令"
+  },
+  "questions": [
+    {
+      "id": "empId",
+      "type": "text",
+      "title": "员工工号",
+      "shortTitle": "工号",
+      "required": true,
+      "unique": true,
+      "maxLen": 16,
+      "placeholder": "请输入唯一工号，重复提交将被拦截",
+      "roles": ["list", "query", "identity"]
+    },
+    {
+      "id": "department",
+      "type": "select",
+      "title": "所属部门",
+      "shortTitle": "部门",
+      "required": true,
+      "options": [
+        "技术研发部",
+        "产品设计部",
+        "市场运营部",
+        "人力资源部",
+        "财务法务部",
+        "行政后勤部",
+        "销售支持部",
+        "客户成功部",
+        "战略发展部",
+        "供应链管理部",
+        "其他职能部门"
+      ],
+      "roles": ["list", "query"]
+    },
+    {
+      "id": "topic",
+      "type": "radio",
+      "title": "最希望参与的培训方向",
+      "shortTitle": "培训方向",
+      "required": true,
+      "columns": 2,
+      "options": ["AI 提效实战", "跨部门沟通", "项目管理进阶", "数据分析基础"],
+      "roles": ["list"]
+    },
+    {
+      "id": "suggestion",
+      "type": "textarea",
+      "title": "对本次培训的其他建议",
+      "shortTitle": "建议",
+      "maxLen": 300,
+      "placeholder": "选填，欢迎提出具体业务痛点"
+    }
+  ]
+}
