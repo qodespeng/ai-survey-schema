@@ -1,9 +1,9 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "title": "客户需求评估",
   "desc": "收集客户需求，提交后由 AI 根据规则评估需求等级。",
   "showNumbering": true,
-  "literalRuleSpec": "根据以下规则评估客户需求等级：\n1. 预算 5000 元以上为高优\n2. 预算 2000-5000 元为中优\n3. 预算 2000 元以下为普通\n4. 如备注中提到“急”或“尽快”，等级提升一档",
+  "literalRuleSpec": "根据以下规则评估客户需求等级，并将评估等级和理由写入“AI评估结果”字段：\n1. 预算 5000 元以上为高优\n2. 预算 2000-5000 元为中优\n3. 预算 2000 元以下为普通\n4. 如备注中提到“急”或“尽快”，等级提升一档",
   "ruleExecutable": true,
   "ruleResultRequired": true,
   "questions": [
@@ -11,17 +11,21 @@
       "id": "budget",
       "type": "decimal",
       "title": "预算（元）",
+      "shortTitle": "预算",
       "required": true,
       "maxLen": 10,
-      "placeholder": "请输入预算金额，如 3500"
+      "placeholder": "请输入预算金额，如 3500",
+      "roles": ["list", "query"]
     },
     {
       "id": "needs",
       "type": "textarea",
       "title": "具体需求描述",
+      "shortTitle": "需求描述",
       "required": true,
       "maxLen": 500,
-      "placeholder": "请描述你需要什么产品或服务"
+      "placeholder": "请描述你需要什么产品或服务",
+      "roles": ["identity"]
     },
     {
       "id": "remark",
@@ -29,6 +33,15 @@
       "title": "备注",
       "maxLen": 200,
       "placeholder": "如有时间要求或特殊情况请在此说明"
+    },
+    {
+      "id": "aiLevel",
+      "type": "text",
+      "title": "AI评估结果",
+      "shortTitle": "需求等级",
+      "readOnly": true,
+      "placeholder": "提交评估后由 AI 自动生成",
+      "roles": ["list", "query"]
     }
   ]
 }
